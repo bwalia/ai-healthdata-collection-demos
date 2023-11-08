@@ -2,7 +2,11 @@
     <div>
         <img src="~/assets/images/user.svg" id="user" width="500">
     </div>
-    <p class="hints"></p>
+    <div class="hints"></div>
+    <div class="microphone">
+        <Icon name="system-uicons:microphone" id="microphone" />
+        <!-- system-uicons:microphone -->
+    </div>
     <div>
         <p class="output"><em>...diagnostic messages</em></p>
     </div>
@@ -17,7 +21,7 @@ export default {
         this.listenAudio();
     },
     methods: {
-        speechResult (speech) {
+        speechResult(speech) {
             this.$emit('speech-result', speech);
         },
         listenAudio() {
@@ -52,7 +56,7 @@ export default {
             // });
             hints.innerHTML = 'Tap/click then say antrhing';
 
-            document.body.onclick = function () {
+            document.getElementById("microphone").onclick = function () {
                 recognition.start();
                 console.log('Ready to receive a color command.');
             }
@@ -88,3 +92,12 @@ export default {
     }
 }
 </script>
+
+<style>
+.microphone {
+    display: flex;
+    justify-content: center;
+    font-size: 65px;
+
+}
+</style>

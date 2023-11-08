@@ -9,6 +9,9 @@
                 <div class="chatbot-message">
                     <p class="chatbot-text">Hi! 👋 it's great to see you!</p>
                 </div>
+                <div class="chatbot-message">
+                    <p class="chatbot-text">For the time being I can only answer the Diabetes related queries.</p>
+                </div>
             </div>
             <form id="inputForm" @submit.prevent="handleSubmit">
                 <div class="message-container">
@@ -39,40 +42,39 @@ export default {
             }
         },
     },
-    data() {
-        return {
-            searchQuery: '',
-            searchResults: [],
-        };
-    },
+    data() {},
     mounted() {
         this.previousChat();
     },
     methods: {
         async previousChat () {
-            // const { data } = await useFetch('http://localhost:2000/display');
-            const users = await $fetch('http://localhost:2000/display').catch((error) => error.data)
-            console.log({users});
+            const data = await $fetch('http://localhost:2000/display').catch((error) => error.data)
+            console.log({data});
         },
         generateResponse(input) {
-            // Add chatbot logic here
-            const responses = [
-                "Hello, how can I help you today? 😊",
-                "I'm sorry, I didn't understand your question. Could you please rephrase it? 😕",
-                "I'm here to assist you with any questions or concerns you may have. 📩",
-                "I'm sorry, I'm not able to browse the internet or access external information. Is there anything else I can help with? 💻",
-                "What would you like to know? 🤔",
-                "I'm sorry, I'm not programmed to handle offensive or inappropriate language. Please refrain from using such language in our conversation. 🚫",
-                "I'm here to assist you with any questions or problems you may have. How can I help you today? 🚀",
-                "Is there anything specific you'd like to talk about? 💬",
-                "I'm happy to help with any questions or concerns you may have. Just let me know how I can assist you. 😊",
-                "I'm here to assist you with any questions or problems you may have. What can I help you with today? 🤗",
-                "Is there anything specific you'd like to ask or talk about? I'm here to help with any questions or concerns you may have. 💬",
-                "I'm here to assist you with any questions or problems you may have. How can I help you today? 💡",
-            ];
-
-            // Return a random response
-            return responses[Math.floor(Math.random() * responses.length)];
+            const greeting = ["hi", "hello", "hey"]
+            const responses = {
+                "askName": "Before we proceed to next, May I know your Name? 😊",
+                "thankName": `Nice name ${input}. Now let's come to point.`,
+                "since": "Since how long you are edaling with Diabetes? 📩",
+                "checkUps": "Have you done regular, weakly, or monthly checkups? 💻",
+                "hb1c": "What is your last HB1C score? 🤔",
+                "type": "Do you have Type 1 or Type 2 Diabetes?",
+                "insulin": "Are you taking insulin or still managing with pills?. 🚫",
+                "out": "I'm sorry, I'm not programmed to handle offensive or inappropriate language. Please refrain from using such language in our conversation",
+                "end": "Is there anything specific you'd like to ask or talk about? I'm here to help with any questions or concerns you may have. 💬",
+            };
+            const isGreeted = greeting.some(value => input.includes(value));
+            const regexFor2Words = /^\S+\s+\S+$/;
+            const isTwoWords = regexFor2Words.test(input);
+            if (isGreeted) {
+                return responses.askName;
+            } else if (isTwoWords) {
+                return responses.thankName;
+            }
+            else {
+                return responses.out;
+            }
         },
         handleSubmit() {
             const conversation = document.getElementById('conversation');
