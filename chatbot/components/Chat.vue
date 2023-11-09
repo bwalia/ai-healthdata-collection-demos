@@ -42,14 +42,42 @@ export default {
             }
         },
     },
-    data() {},
+    data() { },
     mounted() {
-        this.previousChat();
+        this.showPreviousChat();
     },
     methods: {
-        async previousChat () {
-            const data = await $fetch('http://localhost:2000/display').catch((error) => error.data)
-            console.log({data});
+        isEmpty(obj) {
+            return Object.entries(obj).length === 0;
+        },
+        objectLength(obj) {
+            return Object.entries(obj).length;
+        },
+        async previousChat() {
+            const conversationId = localStorage.getItem("conversationId") || "";
+            const data = await $fetch(
+                `http://localhost:2000/display?cId=${conversationId}`
+            ).catch((error) => error.data);
+            return data;
+        },
+        async showPreviousChat() {
+            const previousChat = await this.previousChat();
+            const conversationWrapper = document.getElementById('conversation');
+            for (const cnvKey in previousChat.data) {
+                if (Object.hasOwnProperty.call(previousChat.data, cnvKey)) {
+                    const element = previousChat.data[cnvKey];
+                    if (typeof element === "object") {
+                        const dateTime = new Date(element.timestmp / 1000);
+                        const time = dateTime.toLocaleTimeString([], { hour: '2-digit', minute: "2-digit" })
+                        let message = document.createElement('div');
+                        message.classList.add('chatbot-message', 'user-message');
+                        message.innerHTML = `<p class="chatbot-text" sentTime="${time}">${element.message}</p>`;
+                        conversationWrapper.appendChild(message);
+                    }
+                }
+            }
+            // previousChat.forEach(conversation => {
+            // });
         },
         generateResponse(input) {
             const greeting = ["hi", "hello", "hey"]
@@ -65,33 +93,65 @@ export default {
                 "end": "Is there anything specific you'd like to ask or talk about? I'm here to help with any questions or concerns you may have. 💬",
             };
             const isGreeted = greeting.some(value => input.includes(value));
-            const regexFor2Words = /^\S+\s+\S+$/;
-            const isTwoWords = regexFor2Words.test(input);
+            const isValidName = (name) => /^[A-Za-z\s\-']+$/u.test(name);
             if (isGreeted) {
                 return responses.askName;
-            } else if (isTwoWords) {
+            } else if (isValidName) {
                 return responses.thankName;
             }
             else {
                 return responses.out;
             }
         },
-        handleSubmit() {
+        async handleSubmit() {
             const conversation = document.getElementById('conversation');
             const formEl = document.forms.inputForm;
             const formData = new FormData(formEl);
-
+            const currentDate = new Date();
             const input = formData.get("messageField");
-            const currentTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: "2-digit" });
+            const currentTime = currentDate.toLocaleTimeString([], { hour: '2-digit', minute: "2-digit" });
             formEl.reset();
             // Add user input to conversation
             let message = document.createElement('div');
             message.classList.add('chatbot-message', 'user-message');
             message.innerHTML = `<p class="chatbot-text" sentTime="${currentTime}">${input}</p>`;
             conversation.appendChild(message);
-
             // Generate chatbot response
             const response = this.generateResponse(input);
+            const previousChat = await this.previousChat();
+            console.log({ prev: previousChat._id });
+            let customerResponse = {};
+            if (!previousChat._id) {
+                console.log("if");
+                customerResponse[0] = {
+                    "timestmp": + currentDate,
+                    "response": "person",
+                    "message": input
+                }
+                customerResponse[1] = {
+                    "timestmp": + currentDate,
+                    "response": "chatbot",
+                    "message": response
+                }
+                if (localStorage.getItem("conversationId")) {
+                    customerResponse['id'] = localStorage.getItem("conversationId") || "";
+                }
+            } else {
+                console.log("else");
+                customerResponse = {...previousChat.data}
+                const resLength = this.objectLength(previousChat.data);
+                customerResponse[resLength - 2] = {
+                    "timestmp": + currentDate,
+                    "response": "person",
+                    "message": input
+                }
+                customerResponse[resLength - 1] = {
+                    "timestmp": + currentDate,
+                    "response": "chatbot",
+                    "message": response
+                }
+            }
+            console.log({ customerResponse });
 
             // Add chatbot response to conversation
             message = document.createElement('div');
@@ -99,6 +159,15 @@ export default {
             message.innerHTML = `<p class="chatbot-text" sentTime="${currentTime}">${response}</p>`;
             conversation.appendChild(message);
             message.scrollIntoView({ behavior: "smooth" });
+
+            const insertData = await $fetch('http://localhost:2000/insert', {
+                method: "post",
+                body: customerResponse
+            }).catch((error) => error.data);
+            console.log({ insertData });
+            if (insertData.acknowledged && !insertData?.matchedCount) {
+                localStorage.setItem("conversationId", insertData.insertedId);
+            }
         },
     }
 }
