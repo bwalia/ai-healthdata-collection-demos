@@ -3,6 +3,7 @@
         <div id="header">
             <h2>24/7 Healthdata Collection Agent</h2>
             <h5>AI Powered speaks in your Natural Language</h5>
+            <button id="clearCoversation" @click="clearConversation" type="button">Clear Conversation</button>
         </div>
         <div id="chatbot">
             <div id="conversation">
@@ -60,30 +61,13 @@ export default {
             ).catch((error) => error.data);
             return data;
         },
-        async showPreviousChat() {
-            const previousChat = await this.previousChat();
-            const conversationWrapper = document.getElementById('conversation');
-            for (const cnvKey in previousChat.data) {
-                if (Object.hasOwnProperty.call(previousChat.data, cnvKey)) {
-                    const element = previousChat.data[cnvKey];
-                    if (typeof element === "object") {
-                        const dateTime = new Date(element.timestmp / 1000);
-                        const time = dateTime.toLocaleTimeString([], { hour: '2-digit', minute: "2-digit" })
-                        let message = document.createElement('div');
-                        message.classList.add('chatbot-message', 'user-message');
-                        message.innerHTML = `<p class="chatbot-text" sentTime="${time}">${element.message}</p>`;
-                        conversationWrapper.appendChild(message);
-                    }
-                }
-            }
-            // previousChat.forEach(conversation => {
-            // });
-        },
-        generateResponse(input) {
-            const greeting = ["hi", "hello", "hey"]
-            const responses = {
+        staticResponse(inputVal) {
+            return {
                 "askName": "Before we proceed to next, May I know your Name? 😊",
-                "thankName": `Nice name ${input}. Now let's come to point.`,
+                "thankName": `Nice name. Is this your Full name?`,
+                "phone_no": "Thanks for confirming Full Name, can you confirm you mobile/phone number?",
+                "full_name": "Then can you please say your Full name?",
+                "address": "May I know where do you live?",
                 "since": "Since how long you are edaling with Diabetes? 📩",
                 "checkUps": "Have you done regular, weakly, or monthly checkups? 💻",
                 "hb1c": "What is your last HB1C score? 🤔",
@@ -92,15 +76,69 @@ export default {
                 "out": "I'm sorry, I'm not programmed to handle offensive or inappropriate language. Please refrain from using such language in our conversation",
                 "end": "Is there anything specific you'd like to ask or talk about? I'm here to help with any questions or concerns you may have. 💬",
             };
+        },
+        async showPreviousChat() {
+            const previousChat = await this.previousChat();
+            const conversationWrapper = document.getElementById('conversation');
+            if (previousChat)
+                for (const cnvKey in previousChat.data) {
+                    if (Object.hasOwnProperty.call(previousChat.data, cnvKey)) {
+                        const element = previousChat.data[cnvKey];
+                        if (typeof element === "object") {
+                            const dateTime = new Date(element.timestmp / 1000);
+                            const time = dateTime.toLocaleTimeString([], { hour: '2-digit', minute: "2-digit" })
+                            let message = document.createElement('div');
+                            message.classList.add('chatbot-message');
+                            if (element.response === "person") {
+                                message.classList.add('user-message');
+                            }
+                            message.innerHTML = `<p class="chatbot-text" sentTime="${time}">${element.message}</p>`;
+                            conversationWrapper.appendChild(message);
+                        }
+                    }
+                }
+        },
+        generateResponse(input) {
+            const previousMessage = localStorage.getItem("botResponse");
+            const fullNameCHeck = ["yes", "yeah", "yeh", "yep"];
+            const greeting = ["hi", "hello", "hey"];
+            const nameValidation = ["name", "my name", "full name", "you can call me"];
+            const inputValue = input.includes("is") ? input.split("is ") : [];
+            console.log({ input, previousMessage, isname: fullNameCHeck.some(value => input.includes(value)) });
+            const responses = this.staticResponse(inputValue[1]);
             const isGreeted = greeting.some(value => input.includes(value));
-            const isValidName = (name) => /^[A-Za-z\s\-']+$/u.test(name);
-            if (isGreeted) {
+            const isValidName = nameValidation.some(value => input.includes(value));
+            if (isGreeted && !previousMessage) {
                 return responses.askName;
-            } else if (isValidName) {
+            } else if (isValidName && previousMessage === responses.askName) {
                 return responses.thankName;
+            } else if (previousMessage === responses.thankName) {
+                if (fullNameCHeck.some(value => input.includes(value)))
+                    return responses.phone_no
+                else
+                    return responses.full_name;
+            } else if (previousMessage === responses.full_name) {
+                return responses.phone_no;
+            } else if (previousMessage === responses.phone_no) {
+                return responses.address
             }
             else {
                 return responses.out;
+            }
+        },
+
+        async uploadUserDetail (body) {
+            const userId = localStorage.getItem("userId") || "";
+            if (userId) {
+                body['id'] = userId;   
+            }
+            const insertData = await $fetch(`http://localhost:2000/user-details`, {
+                method: "post",
+                body: body
+            }).catch((error) => error.data);
+
+            if (insertData.acknowledged && !insertData?.matchedCount) {
+                localStorage.setItem("userId", insertData.insertedId);
             }
         },
         async handleSubmit() {
@@ -116,19 +154,55 @@ export default {
             message.classList.add('chatbot-message', 'user-message');
             message.innerHTML = `<p class="chatbot-text" sentTime="${currentTime}">${input}</p>`;
             conversation.appendChild(message);
+            const previousMessage = localStorage.getItem("botResponse");
+            const parseValue = input.includes("is") ? input.split("is ") : [];
+            const parseAdValue = input.includes("in") ? input.split("in ") : [];
+            const responses = this.staticResponse(parseValue[1]);
             // Generate chatbot response
             const response = this.generateResponse(input);
+            localStorage.setItem('botResponse', response);
             const previousChat = await this.previousChat();
-            console.log({ prev: previousChat._id });
+
+            const name = previousMessage === responses.askName && parseValue[1];
+            const phoneNo = previousMessage === responses.phone_no && parseValue[1];
+            const address = previousMessage === responses.address && parseAdValue[1];
+            const userData = name ? {name} : phoneNo ? {phoneNo} : address ? {address} : "";
+            console.log(userData);
+            this.uploadUserDetail(userData)
+
+            console.log({previousChat});
+
             let customerResponse = {};
-            if (!previousChat._id) {
-                console.log("if");
+            if (!previousChat || !previousChat?._id) {
                 customerResponse[0] = {
                     "timestmp": + currentDate,
                     "response": "person",
-                    "message": input
+                    "message": input,
+                    "meta_data": {
+                        "name": name,
+                        "phone_no": phoneNo,
+                        "address": address
+                    }
                 }
                 customerResponse[1] = {
+                    "timestmp": + currentDate,
+                    "response": "chatbot",
+                    "message": response
+                }
+            } else {
+                customerResponse = { ...previousChat.data }
+                const resLength = this.objectLength(previousChat.data);
+                customerResponse[resLength] = {
+                    "timestmp": + currentDate,
+                    "response": "person",
+                    "message": input,
+                    "meta_data": {
+                        "name": name,
+                        "phone_no": phoneNo,
+                        "address": address
+                    }
+                }
+                customerResponse[resLength + 1] = {
                     "timestmp": + currentDate,
                     "response": "chatbot",
                     "message": response
@@ -136,23 +210,9 @@ export default {
                 if (localStorage.getItem("conversationId")) {
                     customerResponse['id'] = localStorage.getItem("conversationId") || "";
                 }
-            } else {
-                console.log("else");
-                customerResponse = {...previousChat.data}
-                const resLength = this.objectLength(previousChat.data);
-                customerResponse[resLength - 2] = {
-                    "timestmp": + currentDate,
-                    "response": "person",
-                    "message": input
-                }
-                customerResponse[resLength - 1] = {
-                    "timestmp": + currentDate,
-                    "response": "chatbot",
-                    "message": response
-                }
             }
-            console.log({ customerResponse });
 
+            console.log({customerResponse});
             // Add chatbot response to conversation
             message = document.createElement('div');
             message.classList.add('chatbot-message', 'chatbot');
@@ -169,6 +229,17 @@ export default {
                 localStorage.setItem("conversationId", insertData.insertedId);
             }
         },
+        async clearConversation() {
+            const data = await $fetch(
+                `http://localhost:2000/clear-conversation`
+            ).catch((error) => error.data);
+            if (data.status === "OK") {
+                localStorage.removeItem("conversationId");
+                localStorage.removeItem("botResponse");
+                localStorage.removeItem("userId");
+                window.location.reload();
+            }
+        }
     }
 }
 

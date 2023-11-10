@@ -8,22 +8,25 @@ import SvgAvatar from '../components/SvgAvatar.vue';
     <div>
       <Chat :receivedValue="speech" />
     </div>
+    <div>
+      <InfoForm />
+    </div>
   </div>
 </template>
   
 <script>
-export default {
-  data() {
-    return {
-      speech: '',
-    };
-  },
 
-  methods: {
-    receiveData(data) {
-      this.speech = data;
+export default {
+    data() {
+        return {
+            speech: '',
+        };
     },
-  }
+    methods: {
+        receiveData(data) {
+            this.speech = data;
+        },
+    },
 }
 </script>
 

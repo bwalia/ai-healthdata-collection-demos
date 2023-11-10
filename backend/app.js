@@ -45,6 +45,41 @@ app.post('/insert', async (req, res) => {
     }
 });
 
+app.post('/user-details', async (req, res) => {
+    try {
+        // Connect to the MongoDB database
+        const client = new MongoClient(url);
+        await client.connect();
+        console.log('Connected to the MongoDB database');
+        // Access the database and collection
+        const db = client.db('chatbot');
+        const collection = db.collection('users');
+        let result = {};
+        const { id } = req.body;
+        console.log({body: req.body});
+        if (id) {
+            const filter = { _id: new ObjectId(id) };
+            const update = {
+                $set: req.body,
+            };
+            result = await collection.updateOne(filter, update);
+        } else {
+            const userName = req.body.name;
+            if (userName) {
+                const data = {
+                    name: userName
+                 };
+                result = await collection.insertOne(data);
+            }
+        }
+        // Close the MongoDB connection
+        await client.close();
+        res.status(200).send(result);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send(err);
+    }
+});
 
 app.get('/display', async (req, res) => {
     try {
@@ -73,6 +108,55 @@ app.get('/display', async (req, res) => {
         console.error(err);
         res.status(500).send('Error connecting to MongoDB ' + err);
     }
+});
+
+app.get('/user-data', async (req, res) => {
+    try {
+        // Connect to the MongoDB database
+        const client = new MongoClient(url);
+        await client.connect();
+        console.log('Connected to the MongoDB database');
+
+        // Access the database and collection
+        const db = client.db('chatbot');
+        const collection = db.collection('users');
+        let result = {};
+        const { uId } = req.query;
+        if (uId) {
+            const objectId = new ObjectId(uId);
+            // Find and retrieve data from MongoDB
+            result = await collection.findOne({ _id: objectId });
+        } else {
+            result = await collection.find({}).toArray();
+        }
+        // Close the MongoDB connection
+        await client.close();
+
+        res.status(200).json(result);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Error connecting to MongoDB ' + err);
+    }
+});
+
+app.get('/clear-conversation', async (req, res) => {
+    try {
+        const client = new MongoClient(url);
+        await client.connect();
+
+        const database = client.db('chatbot'); // Replace with your actual database name
+        const collection = database.collection('conversation'); // Replace with your actual collection name
+
+        // Delete all documents from the collection
+        const result = await collection.deleteMany({});
+        console.log(`${result.deletedCount} document(s) deleted from the collection.`);
+        await client.close();
+        res.status(200).json({ "status": "OK", "message": "Deleting conversation Success." });
+    } catch {
+        console.error(err);
+        res.status(500).send('Error connecting to MongoDB ' + err);
+    }
+
 });
 
 
