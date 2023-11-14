@@ -23,9 +23,12 @@
 
 <script>
 export default {
+  props: {
+    receiveUser: Object,
+  },
   data() {
     return {
-      fullName: "",
+      fullName: this.receiveUser.name,
       phoneNo: "",
       address: ""
     }

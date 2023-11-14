@@ -121,6 +121,8 @@ export default {
                 return responses.phone_no;
             } else if (previousMessage === responses.phone_no) {
                 return responses.address
+            } else if (previousMessage === responses.address) {
+                return responses.end;
             }
             else {
                 return responses.out;
@@ -167,7 +169,7 @@ export default {
             const phoneNo = previousMessage === responses.phone_no && parseValue[1];
             const address = previousMessage === responses.address && parseAdValue[1];
             const userData = name ? {name} : phoneNo ? {phoneNo} : address ? {address} : "";
-            console.log(userData);
+            this.$emit("user-data", userData);
             this.uploadUserDetail(userData)
 
             console.log({previousChat});
@@ -247,7 +249,7 @@ export default {
 
 <style>
 .chatbot-container {
-    width: 500px;
+    width: 400px;
     margin: 0 auto;
     background-color: #f5f5f5;
     border: 1px solid #cccccc;
@@ -279,7 +281,7 @@ export default {
 
 
 #conversation {
-    height: 400px;
+    height: 155px;
     overflow-y: auto;
     padding: 20px;
     display: flex;
@@ -323,6 +325,7 @@ export default {
     padding: 15px;
     border-radius: 5px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-top: 10px;
 }
 
 #inputForm {

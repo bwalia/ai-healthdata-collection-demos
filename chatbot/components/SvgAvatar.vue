@@ -98,6 +98,9 @@ export default {
     display: flex;
     justify-content: center;
     font-size: 65px;
+}
 
+.hints {
+    text-align: center;
 }
 </style>
