@@ -2,15 +2,18 @@
 import SvgAvatar from '../components/SvgAvatar.vue';
 <template>
   <div class="main-wrapper">
-    <div class="bot-chat-wrapper">
-      <div class="svg-icon-container">
-        <SvgAvatar @speech-result="receiveData" />
-      </div>
+    <!-- <div class="bot-chat-wrapper"> -->
       <div>
-        <Chat :receivedValue="speech" @user-data="recieveUserData" />
+        <Chat :receivedValue="speech" @user-data="recieveUserData" @bot-response="receiveResponse" />
       </div>
+      <div class="svg-icon-container">
+        <SvgAvatar @speech-result="receiveData" :receivedResponse="botResponse" />
+      </div>
+    <!-- </div> -->
+    <div class="toggleBtn">
+      <button @click="toggleVisibility">Toggle Component</button>
     </div>
-    <div class="info-form-wrapper">
+    <div class="info-form-wrapper" v-if="isVisible">
       <InfoForm :receiveUser="userData" />
     </div>
   </div>
@@ -23,6 +26,8 @@ export default {
     return {
       speech: '',
       userData: '',
+      botResponse: '',
+      isVisible: true,
     };
   },
   methods: {
@@ -31,15 +36,21 @@ export default {
     },
     recieveUserData(data) {
       this.userData = data;
-    }
+    },
+    receiveResponse(data) {
+      this.botResponse = data;
+    },
+    toggleVisibility() {
+      this.isVisible = !this.isVisible;
+    },
   },
 }
 </script>
 
 <style>
-.main-wrapper {
-  /* display: flex; */
-}
+/*.main-wrapper {
+  display: flex;
+}*/
 
 .bot-chat-wrapper {
   display: flex;

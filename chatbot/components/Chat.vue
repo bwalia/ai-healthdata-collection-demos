@@ -3,7 +3,8 @@
         <div id="header">
             <h2>24/7 Healthdata Collection Agent</h2>
             <h5>AI Powered speaks in your Natural Language</h5>
-            <button id="clearCoversation" @click="clearConversation" type="button">Clear Conversation</button>
+            <button class="btn btn-clc" id="clearCoversation" @click="clearConversation" type="button">Clear
+                Conversation</button>
         </div>
         <div id="chatbot">
             <div id="conversation">
@@ -129,10 +130,10 @@ export default {
             }
         },
 
-        async uploadUserDetail (body) {
+        async uploadUserDetail(body) {
             const userId = localStorage.getItem("userId") || "";
             if (userId) {
-                body['id'] = userId;   
+                body['id'] = userId;
             }
             const insertData = await $fetch(`http://localhost:2000/user-details`, {
                 method: "post",
@@ -162,17 +163,18 @@ export default {
             const responses = this.staticResponse(parseValue[1]);
             // Generate chatbot response
             const response = this.generateResponse(input);
+            this.$emit("bot-response", response);
             localStorage.setItem('botResponse', response);
             const previousChat = await this.previousChat();
 
             const name = previousMessage === responses.askName && parseValue[1];
             const phoneNo = previousMessage === responses.phone_no && parseValue[1];
             const address = previousMessage === responses.address && parseAdValue[1];
-            const userData = name ? {name} : phoneNo ? {phoneNo} : address ? {address} : "";
+            const userData = name ? { name } : phoneNo ? { phoneNo } : address ? { address } : "";
             this.$emit("user-data", userData);
             this.uploadUserDetail(userData)
 
-            console.log({previousChat});
+            console.log({ previousChat });
 
             let customerResponse = {};
             if (!previousChat || !previousChat?._id) {
@@ -214,7 +216,7 @@ export default {
                 }
             }
 
-            console.log({customerResponse});
+            console.log({ customerResponse });
             // Add chatbot response to conversation
             message = document.createElement('div');
             message.classList.add('chatbot-message', 'chatbot');
@@ -249,7 +251,7 @@ export default {
 
 <style>
 .chatbot-container {
-    width: 400px;
+    /* width: 400px; */
     margin: 0 auto;
     background-color: #f5f5f5;
     border: 1px solid #cccccc;
@@ -257,6 +259,61 @@ export default {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+.btn {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+    outline: none;
+    border: 0;
+    vertical-align: middle;
+    text-decoration: none;
+    font-size: inherit;
+    font-family: inherit;
+}
+
+.btn-clc {
+    font-weight: 600;
+    color: #fff;
+    text-transform: uppercase;
+    padding: 1.25em 2em;
+    background: #2f4f4f;
+    border: 2px solid #fff;
+    border-radius: 0.75em;
+    transform-style: preserve-3d;
+    transition: transform 150ms cubic-bezier(0, 0, 0.58, 1), background 150ms cubic-bezier(0, 0, 0.58, 1);
+}
+
+.btn.btn-clc::before {
+	 position: absolute;
+	 content: '';
+	 width: 100%;
+	 height: 100%;
+	 top: 0;
+	 left: 0;
+	 right: 0;
+	 bottom: 0;
+	 background: #3b5757;
+	 border-radius: inherit;
+	 box-shadow: 0 0 0 2px #3b5757, 0 0.625em 0 0 #ffe3e2;
+	 transform: translate3d(0, 0.75em, -1em);
+	 transition: transform 150ms cubic-bezier(0, 0, 0.58, 1), box-shadow 150ms cubic-bezier(0, 0, 0.58, 1);
+}
+.btn.btn-clc:hover {
+	 background: #11340c;
+	 transform: translate(0, 0.25em);
+}
+ .btn.btn-clc:hover::before {
+	 box-shadow: 0 0 0 2px #3b5757, 0 0.5em 0 0 #ffe3e2;
+	 transform: translate3d(0, 0.5em, -1em);
+}
+ .btn.btn-clc:active {
+	 background: #11340c;
+	 transform: translate(0em, 0.75em);
+}
+ .btn.btn-clc:active::before {
+	 box-shadow: 0 0 0 2px #3b5757, 0 0 #ffe3e2;
+	 transform: translate3d(0, 0, -1em);
+}
 #chatbot {
     background-color: #f5f5f5;
     border: 1px solid #eef1f5;

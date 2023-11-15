@@ -1,6 +1,7 @@
 <template>
     <div>
-        <img src="~/assets/images/user.svg" id="user" width="500">
+        <img src="~/assets/images/user.svg" id="avatarImg" width="500">
+        <input type="hidden" id="status" value="0">
     </div>
     <div class="hints"></div>
     <div class="microphone">
@@ -14,8 +15,19 @@
 
 <script>
 export default {
+    props: {
+        receivedResponse: String,
+    },
+    watch: {
+        receivedResponse(newValue, oldValue) {
+            if (newValue) {
+                this.stopSpeaking();            }
+        },
+    },
     data() {
-
+        return {
+            botResponse: ''
+        }
     },
     mounted() {
         this.listenAudio();
@@ -23,6 +35,33 @@ export default {
     methods: {
         speechResult(speech) {
             this.$emit('speech-result', speech);
+            setTimeout(() => {
+                this.startSpeaking();
+            }, 1500);
+        },
+        stopSpeaking() {
+            document.getElementById("status").value = 0;
+            var element = document.getElementById('avatarImg');
+            element.src = "_nuxt/assets/images/user.svg";
+        },
+
+        startSpeaking() {
+            document.getElementById("status").value = 1;
+            this.avatarSpeaking();
+        },
+
+        avatarSpeaking() {
+            var statusVal = document.getElementById('status').value;
+            //console.log(statusVal)
+            if (statusVal == 1) {
+                var element = document.getElementById('avatarImg');
+                var imgAr = ['3.svg', '4.svg', '5.svg', '6.svg', '7.svg', '8.svg'];
+                var num = Math.floor(Math.random() * imgAr.length);
+                element.src = "_nuxt/assets/images/speaking/" + imgAr[num];
+
+                setTimeout(this.avatarSpeaking, 500);
+                return true;
+            }
         },
         listenAudio() {
             var SpeechRecognition = SpeechRecognition || webkitSpeechRecognition
