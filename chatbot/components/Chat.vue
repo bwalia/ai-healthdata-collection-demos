@@ -1,10 +1,15 @@
 <template>
     <div class="chatbot-container">
-        <div id="header">
-            <h2>24/7 Healthdata Collection Agent</h2>
-            <h5>AI Powered speaks in your Natural Language</h5>
-            <button class="btn btn-clc" id="clearCoversation" @click="clearConversation" type="button">Clear
-                Conversation</button>
+        <div id="chat-header" class="chat-header">
+            <div class="chat-top-heading">
+                <h2>24/7 Healthdata Collection Agent</h2>
+                <h5>AI Powered speaks in your Natural Language</h5>
+            </div>
+            <div class="clear-btn-wrapper">
+                <button class="btn btn-clc" id="clearCoversation" @click="clearConversation" type="button">Clear
+                    Conversation
+                </button>
+            </div>
         </div>
         <div id="chatbot">
             <div id="conversation">
@@ -267,53 +272,33 @@ export default {
     border: 0;
     vertical-align: middle;
     text-decoration: none;
-    font-size: inherit;
-    font-family: inherit;
 }
 
+/*Button One*/
 .btn-clc {
-    font-weight: 600;
-    color: #fff;
-    text-transform: uppercase;
-    padding: 1.25em 2em;
-    background: #2f4f4f;
-    border: 2px solid #fff;
-    border-radius: 0.75em;
-    transform-style: preserve-3d;
-    transition: transform 150ms cubic-bezier(0, 0, 0.58, 1), background 150ms cubic-bezier(0, 0, 0.58, 1);
+  padding:20px 30px;
+  outline: none;
+  background-color: #285d50;
+  border: none;
+  border-radius:5px;
+  box-shadow: 0 9px #485252;
+  color: #ffffff;
 }
 
-.btn.btn-clc::before {
-	 position: absolute;
-	 content: '';
-	 width: 100%;
-	 height: 100%;
-	 top: 0;
-	 left: 0;
-	 right: 0;
-	 bottom: 0;
-	 background: #3b5757;
-	 border-radius: inherit;
-	 box-shadow: 0 0 0 2px #3b5757, 0 0.625em 0 0 #ffe3e2;
-	 transform: translate3d(0, 0.75em, -1em);
-	 transition: transform 150ms cubic-bezier(0, 0, 0.58, 1), box-shadow 150ms cubic-bezier(0, 0, 0.58, 1);
+.btn-clc:hover{
+  background-color: #476052;
 }
-.btn.btn-clc:hover {
-	 background: #11340c;
-	 transform: translate(0, 0.25em);
+
+.btn-clc:active {
+  background-color: #476052;
+  box-shadow: 0 5px #485252;
+  transform: translateY(4px);
 }
- .btn.btn-clc:hover::before {
-	 box-shadow: 0 0 0 2px #3b5757, 0 0.5em 0 0 #ffe3e2;
-	 transform: translate3d(0, 0.5em, -1em);
+
+.clear-btn-wrapper {
+    margin: auto 0;
 }
- .btn.btn-clc:active {
-	 background: #11340c;
-	 transform: translate(0em, 0.75em);
-}
- .btn.btn-clc:active::before {
-	 box-shadow: 0 0 0 2px #3b5757, 0 0 #ffe3e2;
-	 transform: translate3d(0, 0, -1em);
-}
+
 #chatbot {
     background-color: #f5f5f5;
     border: 1px solid #eef1f5;
@@ -321,12 +306,14 @@ export default {
     border-radius: 4px;
 }
 
-#header {
+.chat-header {
     background-color: darkslategrey;
     color: #ffffff;
     padding: 20px;
     font-size: 1em;
     font-weight: bold;
+    display: flex;
+    justify-content: space-between;
 }
 
 .message-container {

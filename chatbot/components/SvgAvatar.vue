@@ -8,9 +8,6 @@
         <Icon name="system-uicons:microphone" id="microphone" />
         <!-- system-uicons:microphone -->
     </div>
-    <div>
-        <p class="output"><em>...diagnostic messages</em></p>
-    </div>
 </template>
 
 <script>
@@ -93,7 +90,7 @@ export default {
             //     console.log(v, i);
             //     colorHTML += '<span style="background-color:' + v + ';"> ' + v + ' </span>';
             // });
-            hints.innerHTML = 'Tap/click then say antrhing';
+            hints.innerHTML = 'Tap/click then say anything';
 
             document.getElementById("microphone").onclick = function () {
                 recognition.start();
@@ -137,9 +134,11 @@ export default {
     display: flex;
     justify-content: center;
     font-size: 65px;
+    margin-top: 10px;
 }
 
 .hints {
     text-align: center;
+    margin-top: 10px;
 }
 </style>
